@@ -1,0 +1,1078 @@
+#+Title: SweetSai - a Sweet WebApp Development effort
+#+Author: Sai Gollapudi
+#+Email: saigollapudi1@gmail.com
+
+* Requirements
+To develop a SweetApp. Aim of the app would be able to manipulate
+Sweets. By manipulation I mean that I should be able to create and
+query sweets of my own making. They should be independent of any
+specific Sweet App. 
+
+Thus I should be able to use this app to experiment with and also compose new
+Sweets. Ultimately, the final designed / accepted Sweet can then be
+part of some yet to be designed web (Sweet) app. 
+
+This app, therefore, can be considered to be a Sweet manipulation tool. 
+
+The development effort for this SweetApp would be done in a phased
+manner. The various phases of development are:
+1. Ph0: Get to know the environment, technology
+2. Ph1: Get to know current state of art in Sweets
+3. Ph2: Develop some simple SweetApps of my own
+4. Ph3: Develop an innovative SweetApp which has application logic as
+   well as Sweet oriented infrastructure.
+
+The ultimate aim of such a development effort can be to 
+1. be able to have a web based app that would allow me drop / grab
+   Sweets. that is, be able to create new Sweets (with test parameters), interact with Sweet
+   Store, fetch Sweets for any context, view them and manipulate them
+2. be able to create "upper layer logic" which would allow Sweets to
+   be used as markup or annotations on text, video, audio files. This
+   is to allow more complex logic to be overlayed on existing content
+   such that meta data can be captured over that existing, published
+   content. This meta data -- Sweets -- than, should be allowed to be
+   stored in the Sweet Store.
+
+
+* Design
+Initial design choices are based on reference works already done for
+Sweets and similar apps. Some choices of technology include
+- Python 2.7 for scripting
+- Flask (micro web development environment)
+- WTF for forms
+- Requests library for creating / handling HTTP requests
+- sqlite database - I am using sqlite database for my work. For this
+  we need to have Flask-sqlalchemy and sqlalchemy-migrate packages
+  installed. As each database is stored in a single file and there is no need to start a database server, this is a
+good choice for our application.
+
+Software Engineering design choices include
+- using emacs-org-mode for Literate Programming 
+- using Virtual Environments
+
+
+* Development work
+** basic layout & structure
+Some of the coding and structure for this work has been inspired by a
+tutorial by Miguel grinberg. 
+[http://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-iii-web-forms:
+Here] is that tutorial.
+
+Directory structure for this app is like this:
+SweetSai/sweetEnv - for Virtual Environment
+SweetSai/app - for packages
+SweetSai/app/templates - for web based templates; html files
+SweetSai/app/static - for static files
+
+** Important code files
+I am using Model View Control architecture for this app. The Models
+are contained in models.py file. The views are contained in views.py
+file. 
+
+The app package contains forms.py and several html forms. 
+
+Config.py file is used to initialize key variables with their values.
+
+The initial file which launches the app is SweetSai.py file.
+
+** Config.py file
+#+name Lconfig
+#+BEGIN_SRC python :tangle "~/workingFolder/Programming/Python/myWEBapp/SweetSai/config.py" :export code :noweb yes  
+#to make the WTF forms in app highly secure 
+WTF_CSRF_ENABLED = True  #this is for cross-site request forgery prevention
+SECRET_KEY = '_Aum_JaiSaiRam,SuperD00perSecretKey_ThatUwillN0T_b_ab1E_2_GUESS?' # needed when CSRF is enabled; this makes a cryptographic token
+
+import os
+basedir = os.path.abspath(os.path.dirname(__file__))
+
+#configuration info for the Mozilla Persona authorization work
+PERSONA_JS='https://login.persona.org/include.js'
+PERSONA_VERIFIER='https://verifier.login.persona.org/verify'
+
+# sqlite database related constants
+SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db') # path to our database
+SQLALCHEMY_MIGRATE_REPO = os.path.join(basedir, 'db_repository') # folder where we will store the SQLAlchemy migrate files.
+#+END_SRC
+
+
+** __init__.py file
+When invoking the package called "app" I create my app object and
+initialize it.
+
+#+NAME L__Init__
+#+BEGIN_SRC python :tangle "/home/welcome/workingFolder/Programming/Python/myWEBapp/SweetSai/app/__init__.py" :export code :noweb yes :padline no
+import os
+from flask import Flask
+from flask.ext.login import LoginManager
+from config import basedir
+from flask.ext.sqlalchemy import SQLAlchemy
+
+app = Flask(__name__)
+app.config.from_object('config')
+
+# creation database 
+db = SQLAlchemy(app) # creating a db object which represents our database
+
+# creation of login manager
+lm = LoginManager()
+lm.init_app(app)
+
+# to avoid circular references we wait till application is loaded
+from app import views, models
+#+END_SRC
+
+
+** SweetSai.py
+#+NAME LSweetSaipy_imports
+#+BEGIN_SRC python :tangle "~/workingFolder/Programming/Python/myWEBapp/SweetSai/SweetSai.py" :export code :noweb yes :padline no
+#!sweetEnv/bin/python
+from app import app
+
+app.run(debug=True)
+#app.run(debug=True, host='0.0.0.0', port=5001)
+
+# for setting up the MongoDB
+from flask.ext.pymongo import PyMongo 
+
+# PyMongo connects to the MongoDB server running on port 27017 
+# on localhost, and assumes a default database name of app.name 
+# (i.e. whatever name you pass to Flask). 
+# This database is exposed as the db attribute.
+mongo = PyMongo(app)
+#+END_SRC
+
+
+** views.py file
+This code represents the actions to be taken by the webapp when
+various views are encountered. 
+#+NAME: LViewsPy_mainFile
+#+BEGIN_SRC python :tangle "/home/welcome/workingFolder/Programming/Python/myWEBapp/SweetSai/app/views.py" :export code :noweb yes :padline no
+from flask import (render_template, 
+                   flash, 
+                   redirect,
+                   session, 
+                   url_for, 
+                   request, 
+                   g,
+                   abort )
+from flask.ext.login import (login_user, 
+                             logout_user, 
+                             current_user,
+                             login_required )
+from app import app, db, lm
+from .forms import get_swtIDForm, MyForm, LoginForm, InputSweetForm
+from .models import User
+import requests
+
+@app.before_request
+def get_current_user():
+    g.user = None
+    email = session.get('email')
+    if email is not None:
+        g.user = email
+
+<<LindexView>>
+
+<<LshowallView>>
+
+<<LinputsweetView>>
+
+<<LpersonaLoginView>>
+
+<<LpersonaLogoutView>>
+
+@app.route('/get_swtID', methods=['GET', 'POST'])
+def get_swtID():
+    form = get_swtIDForm()
+    return render_template('get_swtID.html',
+                           title='Sign In',
+                           form=form)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+       login_user(user)
+       flask.flash('logged in successfully')
+       
+       next = flask.request.args.get('next')
+       if not next_is_valid(next):
+          return flask.abort(400)
+          
+       return flask.redirect(next or flask.url_for('/index'))
+    return render_template('login.html', form=form)
+
+@app.route('/submit', methods=('GET', 'POST'))
+def submit():
+    form = MyForm()
+    if form.validate_on_submit():
+        return redirect('/success')
+    return render_template('submit.html', form=form)
+
+@lm.user_loader
+def load_user(id):
+    # user Id from Flask-Login is unicode, thats why we need to convert
+    # to int before sending it to database (SQLAlchemy) pkg
+    return User.query.get(int(id))  
+
+if __name__ == '__main__':
+    app.run()
+
+#+END_SRC
+
+*** Persona Based Authentication
+Here is the code for the Mozilla's Persona based Login view. The code
+for this is derived from https://github.com/mitsuhiko/flask/blob/master/examples/persona/persona.py"
+#+NAME: LpersonaLoginView
+#+BEGIN_SRC python :noweb yes :export code
+@app.route('/_auth/login', methods=['GET', 'POST'])
+def login_handler():
+    """This is used by the persona.js file to kick off the
+    verification securely from the server side.  If all is okay
+    the email address is remembered on the server.
+    """
+    resp = requests.post(app.config['PERSONA_VERIFIER'], data={
+        'assertion': request.form['assertion'],
+        'audience': request.host_url,
+    }, verify=True)
+    if resp.ok:
+        verification_data = resp.json()
+        if verification_data['status'] == 'okay':
+            session['email'] = verification_data['email']
+            return 'OK'
+    abort(400)
+#+END_SRC
+
+Here is the code for the Mozilla's Persona based Logout view. The code
+for this is derived from https://github.com/mitsuhiko/flask/blob/master/examples/persona/persona.py"
+#+NAME: LpersonaLogoutView
+#+BEGIN_SRC python :noweb yes :export code
+@app.route('/_auth/logout', methods=['POST'])
+def logout_handler():
+    """This is what persona.js will call to sign the user
+    out again.
+    """
+    session.clear()
+    return 'OK'
+#+END_SRC
+
+*** View for Inputting Sweets
+Here is the code for the inputsweet view. This is used to create sweets.
+#+NAME: LinputsweetView
+#+BEGIN_SRC python :noweb yes :export code
+@app.route('/inputsweet', methods=['GET', 'POST'])
+def input_sweet():
+    form = InputSweetForm(request.form) 
+
+    # this is activated when the form is filled by user
+    if request.method == 'POST' and form.validate():
+         flash('thanks for the sweet!')
+
+         #  # if no email given, then force to conform; check for authentication
+         #  if form.email is None or resp.email == "":
+         #     flash('Invalid Login. Please try again.')
+         #     return redirect(url_for('login'))
+
+         #  # check for existing users in database based on email ID
+         #  user = User.query.filter_by(login_emailID=form.email).first()
+
+         #  # user seems to be new, then proceed
+         #  if user is None:
+         #     usr = form.usr
+         #     # user name is not given, then extract it from email ID
+         #     if usr is None or usr == ""
+         #        usr = form.email.split(@')[0]
+
+         # store email ID, name in USER table of database
+         user = User(login_name    = form.usr.data, 
+                     login_emailID = form.email.data)
+   
+         # store the details from form into SWEET table of database   
+         sweet = Sweet(sUsrname   = form.usr.data, 
+                       sUrl       = form.url.data, 
+                       sContext   = form.context.data, 
+                       sAttrib    = form.attributes.data, 
+                       sTimestamp = form.timestamp.data)
+
+         # add, commit the user, sweet values into the database
+         db.session.add(user)
+         db.session.add(sweet)
+         db.session.commit()
+         return redirect(url_for('/index'))
+    return render_template('inputsweetform.html',
+                           title='input sweets',
+                           form=form)
+#+END_SRC
+
+*** View for Showing all Sweets
+Here is the code for the showall view, which is used for seeing all
+the sweets.
+#+NAME: LshowallView
+#+BEGIN_SRC python :noweb yes :export code
+@app.route('/showall')
+def showall_page():
+    user = 'Sai'      
+    sweet_array = [
+        {'uid': 'SaiGo 1', 
+         'context': 'testSweet', 
+         'url' : 'https://saigo1works.com/',
+         'attributes': 'fake 1 Attrib'
+        },
+        {'uid': 'SaiGo 2', 
+         'context': 'testSweet', 
+         'url' : 'https://saigo2works.com/',
+         'attributes': 'fake 2 Attrib'
+        },
+        {'uid': 'SaiGo 3', 
+         'context': 'testSweet', 
+         'url' : 'https://saigo3works.com/',
+         'attributes': 'fake 3 Attrib'
+        } 
+    ]
+    return render_template('showSweets.html', 
+                           title='SaiGo_Home', 
+                           user=user, 
+                           sweet_array=sweet_array)
+#+END_SRC
+
+*** View for Index
+Here is the code for the index view. It also is used for "/" view.
+#+NAME: LindexView
+#+BEGIN_SRC python :noweb yes :export code
+@app.route('/')
+@app.route('/index')
+def home_page():
+    form = MyForm()
+    return render_template('welcome.html', form=form)
+#+END_SRC
+
+
+
+
+** forms.py file
+For Authentication I am using Flask-WTF extension. I am also creating a Forms.py
+#+NAME: LformsPy_fullFile
+#+BEGIN_SRC python :tangle "~/workingFolder/Programming/Python/myWEBapp/SweetSai/app/forms.py" :export code :noweb yes :padline no
+from flask.ext.wtf import Form
+from wtforms import TextField, StringField, BooleanField, validators
+from wtforms.validators import DataRequired
+
+class get_swtIDForm(Form):
+   usr_name = StringField('usr_name', validators=[DataRequired()])
+   remember_me = BooleanField('remember_me', default=False)
+
+class MyForm(Form):
+   usr_name = StringField('usr_name', validators=[DataRequired()])
+
+class LoginForm(Form):
+   usr_name = StringField('usr_name', validators=[DataRequired()])
+   remember_me = BooleanField('remember_me', default=False)
+
+class InputSweetForm(Form):
+   usr        = TextField('sweet creator', [validators.Length(min=6, max=35)])
+   email      = StringField('login email', validators=[DataRequired()])
+   url        = StringField('url being modified', validators=[DataRequired()])
+   context    = TextField('context of sweet', [validators.Length(min=6, max=35)])
+   attributes = StringField('sweet attributes',   validators=[DataRequired()])
+   timestamp  = StringField('timestamp',          validators=[DataRequired()])
+   
+#+END_SRC 
+
+
+** my HTML files
+*** core or base template
+There is a core template upon which various views are built (or
+appended). Here is that core skeleton that is elsewhere enhanced to
+show various other views.
+#+NAME: LbaseTemplate
+#+BEGIN_SRC html :tangle "/home/welcome/workingFolder/Programming/Python/myWEBapp/SweetSai/app/templates/coreLayout.html" :export code :noweb yes
+
+  <!DOCTYPE html>
+  <html>
+     <<LNavBar>>
+     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+     <head> 
+        {% if title %}
+           <title> SWeeTapp - {{ title }} </title>
+        {% else %}
+           <title> SWeeTapp </title>
+        {% endif %}     
+     </head>
+
+     <<LMozPersonaAuth>>
+
+     <header>
+        <h1>SweetSai </h1>
+        <<LMozAuthBar>>
+     </header>
+  
+     <body>
+       <div class="container">
+       {% block body %}{% endblock %}
+       </div>
+       <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+       <script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+     </body>
+  
+  </html>
+#+END_SRC
+
+Here is the html content for launching the nav bar
+#+NAME: LNavBar
+#+BEGIN_SRC html :export code :noweb yes
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <style type="text/css">
+      .container {
+        max-width: 900px;
+        padding-top: 10px;
+      }
+      h2 {color: red;}
+    </style>
+
+    <!-- will use nav-link macro to highlight the one that we are on -->
+    {% from "NavMacro.html" import nav_link with context %}
+
+ <nav class="navbar navbar-inverse" role="navigation">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/index">Home</a>
+    </div>
+
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="/login">Login</a></li>
+        <li><a href="/inputsweet">Create</a></li>
+        <li><a href="#">Show1 </a></li>
+        <li><a href="/showall">Showall </a></li>
+      </ul>
+
+      <!-- search mechanism
+      <form class="navbar-form navbar-left" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Search">
+        </div>
+        <button type="submit" class="btn btn-default">Submit</button>
+      </form>
+      //-->
+
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#">DefineSweet</a></li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">User<b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li><a href="/login">Login</a></li>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Action 1</a></li>
+            <li><a href="#">Action 2</a></li>
+            <li class="divider"></li>
+            <li><a href="/logout">Signout</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+#+END_SRC
+
+Here is the macro I use to ensure that my navigator bar highlights the
+page that I am actively on.
+#+NAME: LNavMacro
+#+BEGIN_SRC html :noweb yes :execute code :tangle "/home/welcome/workingFolder/Programming/Python/myWEBapp/SweetSai/app/templates/NavMacro.html"
+{% macro nav_link(endpoint, name) %}
+{% if request.endpoint.endswith(endpoint) %}
+  <li class="active"><a href="{{ url_for(endpoint) }}">{{name}}</a></li>
+{% else %}
+  <li><a href="{{ url_for(endpoint) }}">{{name}}</a></li>
+{% endif %}
+{% endmacro %}
+#+END_SRC
+
+Here is the content for dealing with Mozilla's Persona based
+authentication
+#+NAME: LMozPersonaAuth
+#+BEGIN_SRC html :noweb yes :execute code 
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+  <script src="{{ config.PERSONA_JS }}"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+  <script>
+    /* the url root is useful for doing HTTP requests */
+    var $URL_ROOT = {{ request.url_root|tojson }};
+    /* we store the current user here so that the persona
+       javascript support knows about the current user */
+    var $CURRENT_USER = {{ g.user|tojson }};
+  </script>
+  <script src="{{ url_for('static', filename='persona.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">  
+#+END_SRC
+ 
+Here is code for indicating the status of user authentication 
+#+NAME: LMozAuthBar
+#+BEGIN_SRC html :noweb yes :export code
+  <div class="authbar">
+    {% if g.user %}
+      Signed in as <em>{{ g.user }}</em>
+      (<a href="#" class="signout">Sign out</a>)
+    {% else %}
+      Not signed in. <a href="#" class="signin">Sign in</a>
+    {% endif %}
+  </div>
+#+END_SRC
+
+*** navigation bar template
+#+NAME: LnavigationBar
+#+BEGIN_SRC html :noweb yes :export code :tangle ""/home/welcome/workingFolder/Programming/Python/myWEBapp/SweetSai/app/templates/navigatorBar.html"
+{% extends "coreLayout.html" %}
+{% set active_page = "index" %}
+
+{% set navigation_bar = [
+   ('/', 'index', 'Index'),
+   ('/login/', 'login, 'Login'),
+   ('/logout/', 'logout', 'Logout),
+   ('/inputsweet/', 'inputsweet', 'InputSweet')
+] -%}
+{% set active_page = active_page | default('index') -%}
+
+<ul id="navigation">
+   {% for href, id, caption in navigation_bar %}
+      <li {% if id == active_page %} class="active" 
+          {% endif %}><a href="{{ href|e }}">{{ caption|e }}</a></li>
+   {% endfor %}
+</ul>
+#+END_SRC
+*** how I intend to show sweets
+Here is the template on which I will show the Sweets. Pls note that
+it is enhancing the core or base template. 
+
+#+NAME: LshowSweets
+#+BEGIN_SRC html :tangle "/home/welcome/workingFolder/Programming/Python/myWEBapp/SweetSai/app/templates/showSweets.html" :export code :noweb yes
+{% extends "coreLayout.html" %}
+{% block body %}
+  <ul class=entries>
+  <h2> here are your sweets: </h2>
+  {% for sweet in sweet_array %}
+  	  <table>
+	      <tr>
+          <td> User ID: </td>
+		  <td> {{ g.user }} </td>
+	  </tr>
+			
+	  <tr>
+		  <td> Context: </td>
+		 <td> {{ sweet.context }} </td>
+	  </tr>
+			
+	<tr>
+		<td> URL: </td>
+		<td> {{ sweet.url }} </td>
+	</tr>
+			
+	<tr>
+		<td> Attributes: </td>
+		<td> {{ sweet.attributes }} </td>
+	</tr>
+	<br />
+	<br />
+	</table>
+  {% else %}
+    <li><em>Unbelievable. No Sweets here so far!</em>
+  {% endfor %}
+  </ul>
+{% endblock %}
+#+END_SRC
+
+*** my page for getting Sweet User ID
+Authentication of the user is done by Mozilla Firefox Persona
+utility. Here I am registering the ID that user may want to use for
+composing Sweets. 
+#+NAME: SweetId_grabber
+#+BEGIN_SRC html :tangle "/home/welcome/workingFolder/Programming/Python/myWEBapp/SweetSai/app/templates/get_swtID.html" :export code :noweb yes
+<!-- extend from base coreLayout.html -->
+{% extends "coreLayout.html" %}
+
+{% block body %}
+<h1> need to sign in your user ID for generating Sweets </h1>
+<form action="" method="post" name="login">
+     {{ form.hidden_tag() }}
+     <p> Please enter your Sweet ID: <br>
+         {{ form.usr_name(size=80) }}<br>
+     </p>
+
+     <p>{{ form.remember_me }} Remember Me </p>
+
+     <p><input type="submit" value="Sign In"></p>
+</form>
+{% endblock %}
+#+END_SRC
+
+*** Submit page
+Here is my submit page in HTML
+#+NAME: Lsubmit_pg
+#+BEGIN_SRC html :tangle "/home/welcome/workingFolder/Programming/Python/myWEBapp/SweetSai/app/templates/submit.html" :export code :noweb yes
+<!--extend from base coreLayout.html -->
+{% extends "coreLayout.html" %}
+
+{% block body %}
+<form method="POST" action="/">
+    {{ form.hidden_tag }}
+    {{ form.usr_name.label }} {{ form.usr_name(size=20) }}
+    <input type="submit" value="Go">
+</form>
+{% endblock %}
+#+END_SRC
+
+*** success page
+Here is my success page in HTML
+#+NAME: Lsuccess_pg
+#+BEGIN_SRC html :tangle ""/home/welcome/workingFolder/Programming/Python/myWEBapp/SweetSai/app/templates/success.html" :export code :noweb yes
+<!-- extend from base coreLayout.html -->
+{% extends "coreLayout.html" %}
+
+{% block body %}
+<h1>SweetSai Success page </h1>
+{% endblock %}
+#+END_SRC
+
+*** my logout page
+Here is the code for my logout page<<sources>> 
+#+NAME: Llogout
+#+BEGIN_SRC html :tangle "/home/welcome/workingFolder/Programming/Python/myWEBapp/SweetSai/app/templates/logout.html" :export code :noweb yes
+<!-- extend from base coreLayout.html -->
+{% extends "coreLayout.html" %}
+
+{% block body %}
+<h1> this is the logOUT page </h1>
+{% endblock %}
+#+END_SRC
+
+*** my LoginForm page
+#+NAME: LloginForm
+#+BEGIN_SRC html :noweb yes :export code :tangle "/home/welcome/workingFolder/Programming/Python/myWEBapp/SweetSai/app/templates/login.html" 
+<!-- extend from base coreLayout.html -->
+{% extends "coreLayout.html" %}
+
+{% block body %}
+<h1> need to sign in your user ID for generating Sweets </h1>
+<form action="" method="post" name="login">
+     {{ form.hidden_tag() }}
+     <p> Please enter your Sweet ID: <br>
+         {{ form.usr_name(size=80) }}<br>
+     </p>
+
+     <p>{{ form.remember_me }} Remember Me </p>
+
+     <p><input type="submit" value="Sign In"></p>
+</form>
+{% endblock %}
+#+END_SRC
+
+*** my welcome page
+#+NAME: LwelcomePage
+#+BEGIN_SRC html :noweb yes :export code :tangle "/home/welcome/workingFolder/Programming/Python/myWEBapp/SweetSai/app/templates/welcome.html" 
+<!-- extend from base coreLayout.html -->
+{% extends "coreLayout.html" %}
+
+{% block body %}
+<h1> welcome to the tool </h1>
+<p>
+   <br> this is a Sweets based web application tool
+   <br> creator: Sai Gollapudi
+   <br>
+   <br> the purpose is to enable one to create, modify Sweets
+   <br> with the ability to modify sweets, next step would be to work with Sweet apps
+</p>
+{% endblock %}
+#+END_SRC
+
+*** my InputSweetForm page
+#+NAME: LinputSweetForm
+#+BEGIN_SRC html :noweb yes :export code :tangle "/home/welcome/workingFolder/Programming/Python/myWEBapp/SweetSai/app/templates/inputsweetform.html" 
+<!-- extend from base coreLayout.html -->
+{% extends "coreLayout.html" %}
+
+{% block body %}
+<h1> Creat a Sweet </h1>
+{% from "_formhelpers.html" import render_field %}
+<form method=post action="/inputsweet">
+   <dl>
+       {{ render_field(form.usr) }}
+       {{ render_field(form.email) }}
+       {{ render_field(form.url) }}
+       {{ render_field(form.context) }}
+       {{ render_field(form.attributes) }}
+   </dl>
+   <p> <input type=submit value=inputsweet>
+</form>
+{% endblock %}
+#+END_SRC
+
+I am using a macro to render the fields in the forms. here is that
+macro that WTF uses. It is inspired by the user manual examples of WTF.
+#+NAME: LformhelperMacro
+#+BEGIN_SRC html :noweb yes :export code :tangle "/home/welcome/workingFolder/Programming/Python/myWEBapp/SweetSai/app/templates/_formhelpers.html"
+{% macro render_field(field) %}
+  <dt>{{ field.label }}
+  <dd>{{ field(**kwargs)|safe }}
+  {% if field.errors %}
+    <ul class=errors>
+    {% for error in field.errors %}
+      <li>{{ error }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+  </dd>
+{% endmacro %}
+
+#+END_SRC
+
+*** style.css file
+Here is the style sheet that I use for my Mozilla Persona authorization
+#+BEGIN_SRC html :export code :noweb yes :tangle "~/workingFolder/Programming/Python/myWEBapp/SweetSai/app/static/style.css"
+
+html {
+    background: #eee;
+}
+
+body {
+    font-family: 'Verdana', sans-serif;
+    font-size: 15px;
+    margin: 30px auto;
+    width: 720px;
+    background: white;
+    padding: 30px;
+}
+
+h1 {
+    margin: 0;
+}
+
+h1, h2, a {
+    color: #d00;
+}
+
+div.authbar {
+    background: #eee;
+    padding: 0 15px;
+    margin: 10px -15px;
+    line-height: 25px;
+    height: 25px;
+    vertical-align: middle;
+}
+
+div.signinprogress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8) url(spinner.png) center center no-repeat;
+    font-size: 0;
+}
+#+END_SRC 
+
+
+
+** database related files
+We chose sqlite database for our work. we had to update the config file with sqlite database related
+constants: SQLALCHEMY_DATABASE_URI and SQLALCHEMY_MIGRATE_REPO.
+
+we intialize our database in our init.py file.
+
+our database is expressed as objects. This is defined in our models.py
+file.
+*** models.py file
+In the MVC architecture, this part -- dealing with models -- relates
+to the models of the database and app that i have used.
+#+NAME: LModelsPy_mainFile
+#+BEGIN_SRC python :tangle "/home/welcome/workingFolder/Programming/Python/myWEBapp/SweetSai/app/models.py" :export code :noweb yes :padline no
+from app import db
+
+<<LUserModel>>
+
+<<LSweetModel>>
+
+#+END_SRC
+
+**** Table of Users
+Definition for User table
+#+NAME: LUserModel
+#+BEGIN_SRC python :export code :noweb yes
+# creating an object for a table named User
+class User(db.Model):
+   id            = db.Column(db.Integer,     primary_key = True)
+   login_name    = db.Column(db.String(64),  index=True, unique=True)
+   login_emailID = db.Column(db.String(120), index=True, unique=True)
+   sweets        = db.relationship('Sweet', backref='author', lazy='dynamic')
+
+   # should the user be allowed to authenticate?
+   def is_authenticated(self):
+       return True
+
+   # banned users can be considered inactive    
+   def is_active(self):
+       return True
+
+   # fake users who are not allowed to even log on
+   def is_anonymous(self):
+       return False
+
+   # returns a unique identifier for user    
+   def get_id(self):
+       try:
+           return unicode(self.id) # python 2
+       except NameError:
+          return str(self.id)      # python 3
+          
+   def __repr__(self):
+       return '<User %r>' % (self.login_name)
+
+#+END_SRC
+
+**** Table of Sweets
+Definition for Sweet table. creating an object for a table named
+Sweet. Sweet has its own ID... but it also has a link with User table one User can scribe multiple Sweets
+#+NAME: LSweetModel
+#+BEGIN_SRC python :export code :noweb yes
+class Sweet(db.Model):
+   id        = db.Column(db.Integer,     primary_key=True)
+
+   # the "s" in front represents the notion of a "sweet"; these are
+   # attributes of a "sweet"
+   sUsrname  = db.Column(db.String(64),  index=True, unique=True) #this is the Sweet user name
+   sUrl      = db.Column(db.String(320), index=True, unique=True)
+   sContext  = db.Column(db.String(64),  index=True, unique=True)
+   sAttrib   = db.Column(db.Text,        index=True, unique=True)
+   sTimestamp= db.Column(db.DateTime)
+   sUser_id  = db.Column(db.Integer,     db.ForeignKey('user.id'))
+
+   def __repr__(self):
+       return '<Sweet %r>' % (self.sUsrname)
+#+END_SRC
+
+
+*** db Creation script file: db_create.py
+Here is a python script that creates the database
+
+#+NAME: Ldb_create
+#+BEGIN_SRC python :noweb yes :export code :tangle "/home/welcome/workingFolder/Programming/Python/myWEBapp/SweetSai/db_create.py" :padline no
+#!sweetEnv/bin/python
+
+# the source for this comes from 
+# http://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-iv-database
+# this is a database migration script used for moving from one to 
+# another version of a database
+
+from migrate.versioning import api
+from config import SQLALCHEMY_DATABASE_URI
+from config import SQLALCHEMY_MIGRATE_REPO
+from app import db
+import os.path
+
+db.create_all()
+if not os.path.exists(SQLALCHEMY_MIGRATE_REPO):
+    api.create(SQLALCHEMY_MIGRATE_REPO, 'database repository')
+    api.version_control(SQLALCHEMY_DATABASE_URI, SQLALCHEMY_MIGRATE_REPO)
+else:
+    api.version_control(SQLALCHEMY_DATABASE_URI, SQLALCHEMY_MIGRATE_REPO, api.version(SQLALCHEMY_MIGRATE_REPO))
+#+END_SRC
+
+to create the database we just need to run the following python
+command in our virtual environment:
+#+BEGIN_SRC python :export code :noweb yes
+./db_create.py
+#+END_SRC
+This will create a database with the label app.db file. This will be a
+sqlite database. the script will also create a directory called
+"db_repository". This new directory wiill store the db migration files.
+
+
+*** db Migration script file: db_migrate.py
+migration is implemented to allow us to (in the future) to change the
+model of the database. Here is a script in python to facilitate that.
+
+#+NAME: Ldb_migrate
+#+BEGIN_SRC python :noweb yes :export code :tangle "/home/welcome/workingFolder/Programming/Python/myWEBapp/SweetSai/db_migrate.py" :padline no
+#!sweetEnv/bin/python
+import imp
+from migrate.versioning import api
+from app import db
+from config import SQLALCHEMY_DATABASE_URI
+from config import SQLALCHEMY_MIGRATE_REPO
+
+v = api.db_version(SQLALCHEMY_DATABASE_URI, SQLALCHEMY_MIGRATE_REPO)
+migration = SQLALCHEMY_MIGRATE_REPO + ('/versions/%03d_migration.py' % (v+1))
+tmp_module = imp.new_module('old_model')
+
+old_model = api.create_model(SQLALCHEMY_DATABASE_URI, SQLALCHEMY_MIGRATE_REPO)
+exec(old_model, tmp_module.__dict__)
+script = api.make_update_script_for_model(SQLALCHEMY_DATABASE_URI, SQLALCHEMY_MIGRATE_REPO, tmp_module.meta, db.metadata)
+open(migration, "wt").write(script)
+
+api.upgrade(SQLALCHEMY_DATABASE_URI, SQLALCHEMY_MIGRATE_REPO)
+v = api.db_version(SQLALCHEMY_DATABASE_URI, SQLALCHEMY_MIGRATE_REPO)
+
+print('New migration saved as ' + migration)
+print('Current database version: ' + str(v))
+#+END_SRC
+
+To ensure proper migration tracking, try to not rename existing
+fields. Limit changes to addition / deletion of fields only. Typing
+can also be changed. Generated migration script can also be checked to
+see if it is correct. 
+
+migration script can be run by executing the following python script
+in our virtual environment
+
+#+BEGIN_SRC python :noweb yes :execute code
+./db_migrate.py
+#+END_SRC
+The script has print statements to show where the migration has been
+stored. version number is also displayed by this script.
+
+
+
+
+
+*** db upgradation script file: db_upgrade.py
+This python script upgrades the sqlite database to the latest revision.
+#+NAME: Ldb_upgrade
+#+BEGIN_SRC python :noweb yes :export code :tangle "/home/welcome/workingFolder/Programming/Python/myWEBapp/SweetSai/db_upgrade.py" :padline no
+#!sweetEnv/bin/python
+from migrate.versioning import api
+from config import SQLALCHEMY_DATABASE_URI
+from config import SQLALCHEMY_MIGRATE_REPO
+
+api.upgrade(SQLALCHEMY_DATABASE_URI, SQLALCHEMY_MIGRATE_REPO)
+v = api.db_version(SQLALCHEMY_DATABASE_URI, SQLALCHEMY_MIGRATE_REPO)
+
+print('Current database version: ' + str(v))
+#+END_SRC
+
+
+*** db downgrade script file: db_downgrade.py
+This python script downgrades the sqlite database by one version.
+#+NAME: Ldb_downgrade
+#+BEGIN_SRC python :noweb yes :export code :tangle :tangle "/home/welcome/workingFolder/Programming/Python/myWEBapp/SweetSai/db_downgrade.py" :padline no
+#!sweetEnv/bin/python
+from migrate.versioning import api
+from config import SQLALCHEMY_DATABASE_URI
+from config import SQLALCHEMY_MIGRATE_REPO
+
+v = api.db_version(SQLALCHEMY_DATABASE_URI, SQLALCHEMY_MIGRATE_REPO)
+api.downgrade(SQLALCHEMY_DATABASE_URI, SQLALCHEMY_MIGRATE_REPO, v - 1)
+v = api.db_version(SQLALCHEMY_DATABASE_URI, SQLALCHEMY_MIGRATE_REPO)
+
+print('Current database version: ' + str(v))
+#+END_SRC
+
+
+* authentication
+** Mozilla Persona based authentication
+I am using mozilla Persona based authentication. This requires Flask
+as well as "requests" libraries.
+
+Personas require us to do some work before any requests come in the views
+file.
+
+** Persona.js file
+#+NAME: LpersonaJs_file
+#+BEGIN_SRC js :export code :noweb yes :tangle "~/workingFolder/Programming/Python/myWEBapp/SweetSai/app/static/persona.js"
+$(function() {
+  /* convert the links into clickable buttons that go to the
+     persona service */
+  $('a.signin').on('click', function() {
+    navigator.id.request({
+      siteName: 'SweetSai App'
+    });
+    return false;
+  });
+
+  $('a.signout').on('click', function() {
+    navigator.id.logout();
+    return false;
+  });
+
+  /* watch persona state changes */
+  navigator.id.watch({
+    loggedInUser: $CURRENT_USER,
+    onlogin: function(assertion) {
+      /* because the login needs to verify the provided assertion
+         with the persona service which requires an HTTP request,
+         this could take a bit.  To not confuse the user we show
+         a progress box */
+      var box = $('<div class=signinprogress></div>')
+        .hide()
+        .text('Please wait ...')
+        .appendTo('body')
+        .fadeIn('fast');
+      $.ajax({
+        type: 'POST',
+        url: $URL_ROOT + '_auth/login',
+        data: {assertion: assertion},
+        success: function(res, status, xhr) { window.location.reload(); },
+        error: function(xhr, status, err) {
+          box.remove();
+          navigator.id.logout();
+          alert('Login failure: ' + err);
+        }
+      });
+    },
+    onlogout: function() {
+      $.ajax({
+        type: 'POST',
+        url: $URL_ROOT + '_auth/logout',
+        success: function(res, status, xhr) { window.location.reload(); },
+        error: function(xhr, status, err) {
+          alert('Logout failure: ' + err);
+        }
+      });
+    }
+  });
+});
+#+END_SRC 
+
+
+
+* making it executable
+My source file needs to be executable. So I need to change the
+Read,Write, Execute settings of my basic Python file. Here is where I
+do that.
+
+#+NAME: make-execute
+#+BEGIN_SRC sh :exports code
+chmod a+x /home/welcome/workingFolder/Programming/Python/myWEBapp/SweetSai/SweetSai.py
+#+END_SRC
+
+#+BEGIN_COMMENT
+* clipboard
+** another Authentication requires us to do 5 things
+*** create a database
+I wanted to create a [[www.google.com][mongoDB ]]MongoDB because person X is using it. It is also
+in SweetStore
+
+*** configure it 
+Configuration requires me to Initialize my setup before the
+application object is created. I do this in my Init files and Config
+files. Here is the code
+#+BEGIN_SRC python :tangle myInitFile.py :export code :noweb yes
+  print ("I did my initialization")
+#+END_SRC
+
+*** setup models
+*** share public keys
+#+END_COMMENT
+
+
+
+
+
+
+
+
+
