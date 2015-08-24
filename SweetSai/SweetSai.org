@@ -35,6 +35,10 @@ The ultimate aim of such a development effort can be to
 
 
 * Design
+This pilot, experimental appliction is designed as a client server web
+application. 
+
+** server side 
 Initial design choices are based on reference works already done for
 Sweets and similar apps. Some choices of technology include
 - Python 2.7 for scripting
@@ -46,12 +50,67 @@ Sweets and similar apps. Some choices of technology include
   installed. As each database is stored in a single file and there is no need to start a database server, this is a
 good choice for our application.
 
+*** CORS
+In our initial part of the development we only needed to display the
+Sweets that we could GET via the front-end app from the existing
+back-end swtrstore (Sweet Store). To do this we could conceptually just rely on the frontend, which would be
+develop using JavaScript. This would make HTTP GET request to the
+Sweet Store and fetch us the HTML page with the Sweets, and then
+essential display this gathered info.
+
+There is one challenge to this design approach - CORS. CORS security
+check would forbid the browser to do a cross-domain request to the
+Sweet Store. That is, by design a Client (browser) should be
+contacting the Server (Sweet Store). However, the Sweet Store server
+(due to CORS) will not trust our domain and not accept our HTTP
+requests. 
+
+To overcome this, we are actually not anymore calling the Sweet Store
+from the front-end web browser, but actually calling the store from
+this back-end or server-side code. 
+
+Due to this, we need to make our Client (Browser) talk to
+our own trusted Server (written up in Python/Flask) and then, in turn,
+have that local server be registered with Sweet Store as a trusted
+domain and then, finally, have our trusted local domain work with Sweet
+Store. The exchange between our trusted local domain Server and our
+Client browser can happen using JSON objects - which need to be
+formatted by the client for viewing on the client side. Essentially
+the connectivity then is from our BrowserClient to our trusted Local
+Server. This is in JSON. Then, our trusted Local Server then connects
+with Sweet Store directly using Python/ Flask based HTTP protocol
+(which does not incur CORS treatment). 
+
+
+Here a Python code makes a request to the Sweet store, gathers the
+Sweets from that using an API. This gathered info is in the form of a
+JSON object. This sweet store furnished JSON object would then be
+filtered on the front-end and then displayed.
+
+If we just seek the [[http://teststore.swtr.us][Sweet Store Page]], we get the HTML output. But, we
+can actually call in the API [[http://teststore.swtr.us/api/sweets/q?who=SaiGo][here]]. This is where the Sweet Store API
+rests. This API allows us to fetch the JSON objects.  
+
+*** SWeet Store API
+Normal Sweet Store HTML page is available at
+http://teststore.swtr.us. The API is available at http://teststore.swtr.us/api/sweets/q?who=SaiGo 
+Post "q?" one can query who=<userid>, or what=<context>, or
+where<url>. Or, have a combination of all of these. The connector is
+the "&" symbol. 
+
+The object that is returned will be a JSON object. 
+
+** client side
+Angular JS framework is being used for doing the FrontEnd JavaScript
+development. 
+
+** Software Engineering aspects
 Software Engineering design choices include
 - using emacs-org-mode for Literate Programming 
 - using Virtual Environments
 
 
-* Development work
+* Server Side or Back-End Development work
 ** basic layout & structure
 Some of the coding and structure for this work has been inspired by a
 tutorial by Miguel grinberg. 
@@ -390,7 +449,7 @@ show various other views.
   <!DOCTYPE html>
   <html>
      <<LNavBar>>
-     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/style.css') }}">
      <head> 
         {% if title %}
            <title> SWeeTapp - {{ title }} </title>
@@ -508,8 +567,8 @@ authentication
        javascript support knows about the current user */
     var $CURRENT_USER = {{ g.user|tojson }};
   </script>
-  <script src="{{ url_for('static', filename='persona.js') }}"></script>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">  
+  <script src="{{ url_for('static', filename='js/persona.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">  
 #+END_SRC
  
 Here is code for indicating the status of user authentication 
@@ -628,7 +687,7 @@ Here is my submit page in HTML
 #+END_SRC
 
 *** success page
-Here is my success page in HTML
+*** Here is my success page in HTML
 #+NAME: Lsuccess_pg
 #+BEGIN_SRC html :tangle ""/home/welcome/workingFolder/Programming/Python/myWEBapp/SweetSai/app/templates/success.html" :export code :noweb yes
 <!-- extend from base coreLayout.html -->
@@ -733,7 +792,7 @@ macro that WTF uses. It is inspired by the user manual examples of WTF.
 
 *** style.css file
 Here is the style sheet that I use for my Mozilla Persona authorization
-#+BEGIN_SRC html :export code :noweb yes :tangle "~/workingFolder/Programming/Python/myWEBapp/SweetSai/app/static/style.css"
+#+BEGIN_SRC html :export code :noweb yes :tangle "~/workingFolder/Programming/Python/myWEBapp/SweetSai/app/static/css/style.css"
 
 html {
     background: #eee;
@@ -972,7 +1031,7 @@ print('Current database version: ' + str(v))
 #+END_SRC
 
 
-* authentication
+* Server Side authentication
 ** Mozilla Persona based authentication
 I am using mozilla Persona based authentication. This requires Flask
 as well as "requests" libraries.
@@ -982,7 +1041,7 @@ file.
 
 ** Persona.js file
 #+NAME: LpersonaJs_file
-#+BEGIN_SRC js :export code :noweb yes :tangle "~/workingFolder/Programming/Python/myWEBapp/SweetSai/app/static/persona.js"
+#+BEGIN_SRC js :export code :noweb yes :tangle "~/workingFolder/Programming/Python/myWEBapp/SweetSai/app/static/js/persona.js"
 $(function() {
   /* convert the links into clickable buttons that go to the
      persona service */
@@ -1039,7 +1098,7 @@ $(function() {
 
 
 
-* making it executable
+* Server Side making it executable
 My source file needs to be executable. So I need to change the
 Read,Write, Execute settings of my basic Python file. Here is where I
 do that.
@@ -1049,8 +1108,200 @@ do that.
 chmod a+x /home/welcome/workingFolder/Programming/Python/myWEBapp/SweetSai/SweetSai.py
 #+END_SRC
 
-#+BEGIN_COMMENT
+
+* Client-side or Front-End Development work
+The front-end development work is being done using Angular JS
+framework. It is being written in JavaScript. The page that is being
+displayed, or the page which triggers the JavaScript is a HTML page.
+
+The coding details of these two are discussed below.
+
+** JavaScript code for front-end
+Here is the code for the basic Angular JS APP component
+#+BEGIN_SRC js :tangle "~/workingFolder/Programming/Python/myWEBapp/SweetSai/app/static/js/SwtFrntApp.js" :export code :noweb yes 
+var app = angular.module('GetPage', []);
+
+#+END_SRC 
+
+This is the JavaScript code for the controller for the Angular JS app that I have created.
+#+NAME: AppController
+#+BEGIN_SRC js :tangle "~/workingFolder/Programming/Python/myWEBapp/SweetSai/app/static/js/SwtFrntCntrl.js" :export code :noweb yes
+
+//exposing expose variables and functionality to expressions and directives in Template
+app.controller('GetPageController', function ($scope, $http) { 
+	$scope.inputURL = "http://teststore.swtr.us/";
+	$scope.show = function() {
+		var returnPromise = $http.get($scope.inputURL);
+		returnPromise.then(
+		    //success
+		    function(data, status, headers, config) {
+			   console.log("Server responded: Success in getting: ", $scope.inputURL);	
+			   $scope.expression = data;
+			   },
+			//error   
+		    function(data, status, headers, config) {
+               log($scope.inputURL);	 	
+			   console.log("Server responded: Error in getting: ", $scope.inputURL);
+			   },
+			//progress   
+			function(data, status, headers, config) {
+			   console.log("Server responded: Progress in getting: ", $scope.inputURL);	
+			   });
+		log($scope.inputURL);	   
+		console.log("I created an Asynch call and am exiting the Show() function");	
+		};
+	});
+#+END_SRC
+
+This function is used for logging debug messages directly to the HTML
+page on the browser. 
+#+NAME: LogFunction
+#+BEGIN_SRC js :tangle "~/workingFolder/Programming/Python/myWEBapp/SweetSai/app/static/js/SwtFrntLog.js" :export code :noweb yes
+function log(str){
+  var log = document.getElementById("log")
+  if (log){ 
+	 // let's be safe...
+     log.innerHTML += str + "<br/>";
+     }
+};
+#+END_SRC
+
+
+** HTML code for front-end
+Here is the HTML page that gets loaded to get / show Sweets.
+#+BEGIN_SRC html :tangle "/home/welcome/workingFolder/Programming/Python/myWEBapp/SweetSai/app/templates/SwtFrnt.html"  :noweb yes :export code
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" 
+ "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+   <head>
+      <link href="//fonts.googleapis.com/css?family=Roboto:100,300"
+	    rel="stylesheet" type="text/css" />
+      <link rel="stylesheet" href={{ url_for('static', filename='css/SwtFrntStyle.css') }} />
+   </head>
+	
+   <body data-ng-app="GetPage">
+      <div class="page-container" id="log" data-ng-controller="GetPageController">
+         <h2> SaiGo's Sweet Page </h2>
+         <div> 
+            input URL: <input type="url" data-ng-model="inputURL" required>
+            <button class="btn" data-ng-click="show()">Show</button>
+         </div>
+         <div data-ng-bind-html-unsafe="expression"> </div>
+      </div>	
+      <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"> </script>
+      <script src={{ url_for('static', filename='js/SwtFrntApp.js')   }}></script>
+      <script src={{ url_for('static', filename='js/SwtFrntCntrl.js') }}></script>
+      <script src={{ url_for('static', filename='js/SwtFrntLog.js')   }}></script>
+   </body>
+
+</html>
+#+END_SRC
+
+Here is the CSS file for the front end tool we are developing.
+#+BEGIN_SRC html :tangle "/home/welcome/workingFolder/Programming/Python/myWEBapp/SweetSai/app/static/css/SwtFrntStyle.css" :noweb yes :export code :padline yes
+,* {
+  box-sizing: border-box;
+  font-family: 'Roboto', Arial;
+  color: #95e2aa;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  background-attachment: scroll;
+  background-clip: border-box;
+  background-color: rgba(0, 0, 0, 0);
+  background-image: url(http://subtlepatterns.com/patterns/stardust.png);
+  background-origin: padding-box;
+  background-size: auto;
+}
+
+.rebel {
+  color: #ff6450;
+}
+
+.achieve {
+  color: #9dc9a8;
+}
+
+.bt {
+  width: 40px;
+  border: none;
+  cursor: pointer;
+  outline: none;
+}
+
+.bt.bt-rebel {
+  background: #ff6450;
+  color: #fff;
+}
+
+.bt.bt-achieve {
+  background: #9dc9a8;
+  color: #444349;
+}
+
+.txt {
+  background: transparent;
+  width: 100%;
+  outline: none;
+  padding: 10px;
+  margin: 4px 0;
+  border: 1px solid #9dc9a8;
+  width: 90%;
+  font-size: 16px;
+  position: relative;
+  min-height: 100%;
+}
+
+.page-container {
+  width: 90%;
+  margin: 0 auto;
+}
+
+.page-container h2 {
+  text-align: center;
+  font-weight: 900;
+}
+
+.add-todo .txt {
+  padding: 10px;
+}
+
+.todo-list, .add-todo {
+  list-style-type: none;
+  text-align: left;
+}
+
+.todo-list li {
+  padding: 10px 80px 10px 10px;
+  margin: 4px 0;
+  border: 1px solid #9dc9a8;
+  width: 90%;
+  position: relative;
+  min-height: 100%;
+  cursor: pointer;
+}
+
+.todo-list li .bt {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  transition: width 0.4s ease-in-out;
+}
+
+.todo-list li .bt:hover {
+  width: 80px;
+}
+#+END_SRC
+
+
 * clipboard
+#+BEGIN_COMMENT
 ** another Authentication requires us to do 5 things
 *** create a database
 I wanted to create a [[www.google.com][mongoDB ]]MongoDB because person X is using it. It is also
