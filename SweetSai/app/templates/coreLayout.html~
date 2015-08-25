@@ -1,0 +1,121 @@
+
+  <!DOCTYPE html>
+  <html>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <style type="text/css">
+      .container {
+        max-width: 50px;
+        padding-top: 10px;
+      }
+      h2 {color: red;}
+    </style>
+
+    <!-- will use nav-link macro to highlight the one that we are on -->
+    {% from "NavMacro.html" import nav_link with context %}
+
+ <nav class="navbar navbar-inverse" role="navigation">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/index">Home</a>
+    </div>
+
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav">
+        <ul class="nav navbar-nav">
+           <li class="active"><a href="/login">Login</a></li>
+           <li><a href="/inputsweet">Create</a></li>
+           <li><a href="#">Show1 </a></li>
+           <li><a href="/showall">Showall </a></li>
+        </ul>
+
+
+      </ul>
+
+      <!-- search mechanism
+      <form class="navbar-form navbar-left" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Search">
+        </div>
+        <button type="submit" class="btn btn-default">Submit</button>
+      </form>
+      //-->
+
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#">DefineSweet</a></li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">User<b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li><a href="/login">Login</a></li>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Action 1</a></li>
+            <li><a href="#">Action 2</a></li>
+            <li class="divider"></li>
+            <li><a href="/logout">Signout</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+  
+  <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+  
+  <head> 
+          {% if title %}
+          <title> SWeeTapp - {{ title }} </title>
+          {% else %}
+          <title> SWeeTapp </title>
+          {% endif %}     
+  </head>
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+  <script src="{{ config.PERSONA_JS }}"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+  <script>
+    /* the url root is useful for doing HTTP requests */
+    var $URL_ROOT = {{ request.url_root|tojson }};
+    /* we store the current user here so that the persona
+       javascript support knows about the current user */
+    var $CURRENT_USER = {{ g.user|tojson }};
+  </script>
+  <script src="{{ url_for('static', filename='persona.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">  
+
+  <header>
+
+  <h1>SweetSai </h1>
+  <h2>A Sweets based Web Application </h2>
+  <p> by Sai Gollapudi 
+      <br>
+      <br> 
+  </p>
+
+  <div class="authbar">
+    {% if g.user %}
+      Signed in as <em>{{ g.user }}</em>
+      (<a href="#" class="signout">Sign out</a>)
+    {% else %}
+      Not signed in. <a href="#" class="signin">Sign in</a>
+    {% endif %}
+  </div>
+  </header>
+  
+  <body>
+    <div class="container">
+
+    {% block body %}{% endblock %}
+
+    </div>
+    <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+  </body>
+
+  </html>

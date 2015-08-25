@@ -1,0 +1,13 @@
+
+import os
+from flask import Flask
+from flask.ext.login import LoginManager
+
+app = Flask(__name__)
+app.config.from_object('config')
+
+# to avoid circular references we wait till application is loaded
+from app import views, models
+
+lm = LoginManager()
+lm.init_app(app)

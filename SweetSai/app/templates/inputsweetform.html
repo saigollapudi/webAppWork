@@ -1,0 +1,18 @@
+
+<!-- extend from base coreLayout.html -->
+{% extends "coreLayout.html" %}
+
+{% block body %}
+<h1> Creat a Sweet </h1>
+{% from "_formhelpers.html" import render_field %}
+<form method=post action="/inputsweet">
+   <dl>
+       {{ render_field(form.usr) }}
+       {{ render_field(form.email) }}
+       {{ render_field(form.url) }}
+       {{ render_field(form.context) }}
+       {{ render_field(form.attributes) }}
+   </dl>
+   <p> <input type=submit value=inputsweet>
+</form>
+{% endblock %}

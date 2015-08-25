@@ -1,0 +1,34 @@
+
+{% extends "coreLayout.html" %}
+{% block body %}
+  <ul class=entries>
+  <h2> here are your sweets: </h2>
+  {% for sweet in sweet_array %}
+  	  <table>
+	      <tr>
+          <td> User ID: </td>
+		  <td> {{ g.user }} </td>
+	  </tr>
+			
+	  <tr>
+		  <td> Context: </td>
+		 <td> {{ sweet.context }} </td>
+	  </tr>
+			
+	<tr>
+		<td> URL: </td>
+		<td> {{ sweet.url }} </td>
+	</tr>
+			
+	<tr>
+		<td> Attributes: </td>
+		<td> {{ sweet.attributes }} </td>
+	</tr>
+	<br />
+	<br />
+	</table>
+  {% else %}
+    <li><em>Unbelievable. No Sweets here so far!</em>
+  {% endfor %}
+  </ul>
+{% endblock %}

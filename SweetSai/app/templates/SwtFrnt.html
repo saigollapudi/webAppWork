@@ -1,0 +1,26 @@
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" 
+ "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+   <head>
+      <link href="//fonts.googleapis.com/css?family=Roboto:100,300"
+	    rel="stylesheet" type="text/css" />
+      <link rel="stylesheet" href={{ url_for('static', filename='css/SwtFrntStyle.css') }} />
+   </head>
+	
+   <body data-ng-app="GetPage">
+      <div class="page-container" id="log" data-ng-controller="GetPageController">
+         <h2> SaiGo's Sweet Page </h2>
+         <div> 
+            input URL: <input type="url" data-ng-model="inputURL" required>
+            <button class="btn" data-ng-click="show()">Show</button>
+         </div>
+         <div data-ng-bind-html-unsafe="expression"> </div>
+      </div>	
+      <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"> </script>
+      <script src={{ url_for('static', filename='js/SwtFrntApp.js')   }}></script>
+      <script src={{ url_for('static', filename='js/SwtFrntCntrl.js') }}></script>
+      <script src={{ url_for('static', filename='js/SwtFrntLog.js')   }}></script>
+   </body>
+
+</html>

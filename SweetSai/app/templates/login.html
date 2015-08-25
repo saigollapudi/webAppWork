@@ -1,0 +1,17 @@
+
+<!-- extend from base coreLayout.html -->
+{% extends "coreLayout.html" %}
+
+{% block body %}
+<h1> need to sign in your user ID for generating Sweets </h1>
+<form action="" method="post" name="login">
+     {{ form.hidden_tag() }}
+     <p> Please enter your Sweet ID: <br>
+         {{ form.usr_name(size=80) }}<br>
+     </p>
+
+     <p>{{ form.remember_me }} Remember Me </p>
+
+     <p><input type="submit" value="Sign In"></p>
+</form>
+{% endblock %}

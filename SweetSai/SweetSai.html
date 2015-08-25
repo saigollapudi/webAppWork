@@ -1,0 +1,528 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+               "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>SweetSai - a Sweet WebApp Development effort</title>
+<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1"/>
+<meta name="title" content="SweetSai - a Sweet WebApp Development effort"/>
+<meta name="generator" content="Org-mode"/>
+<meta name="generated" content="2015-07-11T15:32+0530"/>
+<meta name="author" content="Sai Gollapudi"/>
+<meta name="description" content=""/>
+<meta name="keywords" content=""/>
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  html { font-family: Times, serif; font-size: 12pt; }
+  .title  { text-align: center; }
+  .todo   { color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #add8e6; font-weight:normal }
+  .target { }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  {margin-left:auto; margin-right:0px;  text-align:right;}
+  .left   {margin-left:0px;  margin-right:auto; text-align:left;}
+  .center {margin-left:auto; margin-right:auto; text-align:center;}
+  p.verse { margin-left: 3% }
+  pre {
+	border: 1pt solid #AEBDCC;
+	background-color: #F3F5F7;
+	padding: 5pt;
+	font-family: courier, monospace;
+        font-size: 90%;
+        overflow:auto;
+  }
+  table { border-collapse: collapse; }
+  td, th { vertical-align: top;  }
+  th.right  { text-align:center;  }
+  th.left   { text-align:center;   }
+  th.center { text-align:center; }
+  td.right  { text-align:right;  }
+  td.left   { text-align:left;   }
+  td.center { text-align:center; }
+  dt { font-weight: bold; }
+  div.figure { padding: 0.5em; }
+  div.figure p { text-align: center; }
+  div.inlinetask {
+    padding:10px;
+    border:2px solid gray;
+    margin:10px;
+    background: #ffffcc;
+  }
+  textarea { overflow-x: auto; }
+  .linenr { font-size:smaller }
+  .code-highlighted {background-color:#ffff00;}
+  .org-info-js_info-navigation { border-style:none; }
+  #org-info-js_console-label { font-size:10px; font-weight:bold;
+                               white-space:nowrap; }
+  .org-info-js_search-highlight {background-color:#ffff00; color:#000000;
+                                 font-weight:bold; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+
+</head>
+<body>
+
+<div id="preamble">
+
+</div>
+
+<div id="content">
+<h1 class="title">SweetSai - a Sweet WebApp Development effort</h1>
+
+
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1 Introduction</a></li>
+<li><a href="#sec-2">2 SweetSai.py file</a></li>
+<li><a href="#sec-3">3 my views.py file</a>
+<ul>
+<li><a href="#sec-3-1">3.1 Imports section</a></li>
+<li><a href="#sec-3-2">3.2 my views section</a>
+<ul>
+<li><a href="#sec-3-2-1">3.2.1 the home view</a></li>
+<li><a href="#sec-3-2-2">3.2.2 the logout view</a></li>
+</ul>
+</li>
+<li><a href="#sec-3-3">3.3 the overall file</a></li>
+</ul>
+</li>
+<li><a href="#sec-4">4 my Package called "app"</a>
+<ul>
+<li><a href="#sec-4-1">4.1 Config File</a></li>
+</ul>
+</li>
+<li><a href="#sec-5">5 my HTML files</a>
+<ul>
+<li><a href="#sec-5-1">5.1 core template</a></li>
+<li><a href="#sec-5-2">5.2 how I intend to show sweets</a></li>
+<li><a href="#sec-5-3">5.3 my login page</a></li>
+<li><a href="#sec-5-4">5.4 my logout page</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> Introduction</h2>
+<div class="outline-text-2" id="text-1">
+
+<p>My app is SWeeTs based. From a technology point of view, it is
+buit on Flask, a Python based micro web development architecture.
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> SweetSai.py file</h2>
+<div class="outline-text-2" id="text-2">
+
+<p>Here is my SweetSai.py file
+</p>
+
+
+
+<pre class="example">#!sweetEnv/bin/python
+from app import app
+
+app.run(debug=True)
+#app.run(debug=True, host='0.0.0.0', port=5001)
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> my views.py file</h2>
+<div class="outline-text-2" id="text-3">
+
+
+</div>
+
+<div id="outline-container-3-1" class="outline-3">
+<h3 id="sec-3-1"><span class="section-number-3">3.1</span> Imports section</h3>
+<div class="outline-text-3" id="text-3-1">
+
+<p>my imports in my views.py file include the following
+</p>
+
+
+<pre class="example">from flask import (render_template, 
+                   flash, 
+                   redirect,
+                   session, 
+                   url_for, 
+                   request, 
+                   g )
+
+from flask.ext.login import (login_user, 
+                             logout_user, 
+                             current_user,
+                             login_required)
+from app import app
+
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-3-2" class="outline-3">
+<h3 id="sec-3-2"><span class="section-number-3">3.2</span> my views section</h3>
+<div class="outline-text-3" id="text-3-2">
+
+
+</div>
+
+<div id="outline-container-3-2-1" class="outline-4">
+<h4 id="sec-3-2-1"><span class="section-number-4">3.2.1</span> the home view</h4>
+<div class="outline-text-4" id="text-3-2-1">
+
+<p>My index view or the home view in my views.py file includes&hellip;
+</p>
+
+
+
+<pre class="example">@app.route('/')
+@app.route('/index')
+@login_required
+def index():
+    user = g.user
+    sweet_array = [
+        {'uid': 'SaiGo 1', 
+         'context': 'testSweet', 
+         'url' : 'https://saigo1works.com/',
+         'attributes': 'fake 1 Attrib'
+        },
+        {'uid': 'SaiGo 2', 
+         'context': 'testSweet', 
+         'url' : 'https://saigo2works.com/',
+         'attributes': 'fake 2 Attrib'
+        },
+        {'uid': 'SaiGo 3', 
+         'context': 'testSweet', 
+         'url' : 'https://saigo3works.com/',
+         'attributes': 'fake 3 Attrib'
+        } 
+    ]
+    return render_template('showSweets.html', 
+                           title='SaiGo_Home', 
+                           user=user, 
+                           sweet_array=sweet_array)
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-3-2-2" class="outline-4">
+<h4 id="sec-3-2-2"><span class="section-number-4">3.2.2</span> the logout view</h4>
+<div class="outline-text-4" id="text-3-2-2">
+
+<p>My logout view for the app is presented here in my logout view of my
+views.py file
+</p>
+
+
+<pre class="example">@app.route('/logout')
+def logout():
+    #logout_user()
+    return redirect(url_for('index'))
+</pre>
+
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-3-3" class="outline-3">
+<h3 id="sec-3-3"><span class="section-number-3">3.3</span> the overall file</h3>
+<div class="outline-text-3" id="text-3-3">
+
+<p>the overall output file for views.py  is as follows. 
+</p>
+
+
+<pre class="example">
+
+
+
+
+
+if __name__ == '__main__':
+    app.run()
+</pre>
+
+
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> my Package called "app"</h2>
+<div class="outline-text-2" id="text-4">
+
+<p>When invoking the package called "app" I create my app object and
+initialize it.
+</p>
+
+
+
+<pre class="example">import os
+from flask import Flask
+from app import views, models
+
+app = Flask(__name__)
+app.config.from_object('config')
+</pre>
+
+
+<p>
+The created app object is then initialized in with these parameters.
+</p>
+</div>
+
+<div id="outline-container-4-1" class="outline-3">
+<h3 id="sec-4-1"><span class="section-number-3">4.1</span> Config File</h3>
+<div class="outline-text-3" id="text-4-1">
+
+<p>Here is my config file:
+</p>
+
+
+
+<pre class="example">SECRET_KEY = '_Aum_JaiSaiRam,SuperD00perSecretKey_ThatUwillN0T_b_ab1E_2_GUESS?'
+
+import os
+basedir = os.path.abspath(os.path.dirname(__file__))
+</pre>
+
+
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-5" class="outline-2">
+<h2 id="sec-5"><span class="section-number-2">5</span> my HTML files</h2>
+<div class="outline-text-2" id="text-5">
+
+
+</div>
+
+<div id="outline-container-5-1" class="outline-3">
+<h3 id="sec-5-1"><span class="section-number-3">5.1</span> core template</h3>
+<div class="outline-text-3" id="text-5-1">
+
+<p>There is a core template upon which various views are built (or
+appended). Here is that core skeleton that is elsewhere enhanced to
+show various other views.
+</p>
+
+
+<pre class="example">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+
+&lt;link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}"&gt;
+
+&lt;head&gt; 
+        {% if title %}
+        &lt;title&gt; SWeeTapp - {{ title }} &lt;/title&gt;
+        {% else %}
+        &lt;title&gt; SWeeTapp &lt;/title&gt;
+        {% endif %}     
+&lt;/head&gt;
+
+&lt;body&gt;
+        &lt;div&gt; SWeetApp: 
+            &lt;a href="{{ url_for('index') }}"&gt; Home&lt;/a&gt;
+            {% if g.user.is_authenticated() %}
+               | &lt;a href="{{ url_for('logout') }}"&gt;Logout&lt;/a&gt;
+            {% endif %}
+        &lt;/div&gt;
+        &lt;hr /&gt;
+        {% with messages = get_flashed_messages() %}
+           {% if messages %}
+           &lt;ul&gt;
+                   {% for message in messages %}
+                       &lt;li&gt; {{ message }} &lt;/li&gt;
+                   {% endfor %}    
+           &lt;/ul&gt;
+           {% endif %}
+        {% endwith%}
+
+    {% block body %} {% endblock %}
+
+&lt;/body&gt;
+
+&lt;/html&gt;
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-5-2" class="outline-3">
+<h3 id="sec-5-2"><span class="section-number-3">5.2</span> how I intend to show sweets</h3>
+<div class="outline-text-3" id="text-5-2">
+
+<p>Here is the template on which I will show the Sweets. Pls note that
+it is enhancing the core or base template. 
+</p>
+
+
+
+<pre class="example">{% extends "coreLayout.html" %}
+{% block body %}
+  &lt;ul class=entries&gt;
+  &lt;h2&gt; here are your sweets: &lt;/h2&gt;
+  {% for sweet in sweet_array %}
+          &lt;table&gt;
+              &lt;tr&gt;
+          &lt;td&gt; User ID: &lt;/td&gt;
+                  &lt;td&gt; {{ sweet.uid }} &lt;/td&gt;
+          &lt;/tr&gt;
+
+          &lt;tr&gt;
+                  &lt;td&gt; Context: &lt;/td&gt;
+                 &lt;td&gt; {{ sweet.context }} &lt;/td&gt;
+          &lt;/tr&gt;
+
+        &lt;tr&gt;
+                &lt;td&gt; URL: &lt;/td&gt;
+                &lt;td&gt; {{ sweet.url }} &lt;/td&gt;
+        &lt;/tr&gt;
+
+        &lt;tr&gt;
+                &lt;td&gt; Attributes: &lt;/td&gt;
+                &lt;td&gt; {{ sweet.attributes }} &lt;/td&gt;
+        &lt;/tr&gt;
+        &lt;br /&gt;
+        &lt;br /&gt;
+        &lt;/table&gt;
+  {% else %}
+    &lt;li&gt;&lt;em&gt;Unbelievable. No Sweets here so far!&lt;/em&gt;
+  {% endfor %}
+  &lt;/ul&gt;
+{% endblock %}
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-5-3" class="outline-3">
+<h3 id="sec-5-3"><span class="section-number-3">5.3</span> my login page</h3>
+<div class="outline-text-3" id="text-5-3">
+
+<p>Here is the code for my login HTML
+</p>
+
+
+
+<pre class="example">&lt;!-- extend from base coreLayout.html --&gt;
+{% extends "coreLayout.html" %}
+
+{% block body %}
+&lt;h1&gt; this is the LOGIN page &lt;/h1&gt;
+{% endblock %}
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-5-4" class="outline-3">
+<h3 id="sec-5-4"><span class="section-number-3">5.4</span> my logout page</h3>
+<div class="outline-text-3" id="text-5-4">
+
+<p>Here is the code for my logout page
+</p>
+
+
+<pre class="example">&lt;!-- extend from base coreLayout.html --&gt;
+{% extends "coreLayout.html" %}
+
+{% block body %}
+&lt;h1&gt; this is the logOUT page &lt;/h1&gt;
+{% endblock %}
+</pre>
+
+</div>
+</div>
+</div>
+</div>
+
+<div id="postamble">
+<p class="date">Date: 2015-07-11T15:32+0530</p>
+<p class="author">Author: Sai Gollapudi</p>
+<p class="creator"><a href="http://orgmode.org">Org</a> version 7.9.3f with <a href="http://www.gnu.org/software/emacs/">Emacs</a> version 24</p>
+<a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>
+
+</div>
+</body>
+</html>
