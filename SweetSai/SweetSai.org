@@ -36,7 +36,7 @@ The ultimate aim of such a development effort can be to
 
 * Design
 This pilot, experimental appliction is designed as a client server web
-application. 
+application. Before Aug 25th, 2015, the design was about 
 
 ** server side 
 Initial design choices are based on reference works already done for
@@ -49,6 +49,8 @@ Sweets and similar apps. Some choices of technology include
   we need to have Flask-sqlalchemy and sqlalchemy-migrate packages
   installed. As each database is stored in a single file and there is no need to start a database server, this is a
 good choice for our application.
+
+When working with Node.js for AngularJS, I used npm package manager.
 
 *** CORS
 In our initial part of the development we only needed to display the
@@ -102,7 +104,9 @@ The object that is returned will be a JSON object.
 
 ** client side
 Angular JS framework is being used for doing the FrontEnd JavaScript
-development. 
+development. For AngularJS package management (in the front-end), I
+use Bower. Bower is to AngularJS what "npm" is to Node.js (in the
+back-end). I use "Karma" the test runner for my Angular JS front-end.
 
 ** Software Engineering aspects
 Software Engineering design choices include
@@ -370,27 +374,15 @@ the sweets.
 #+BEGIN_SRC python :noweb yes :export code
 @app.route('/showall')
 def showall_page():
-    user = 'Sai'      
-    sweet_array = [
-        {'uid': 'SaiGo 1', 
-         'context': 'testSweet', 
-         'url' : 'https://saigo1works.com/',
-         'attributes': 'fake 1 Attrib'
-        },
-        {'uid': 'SaiGo 2', 
-         'context': 'testSweet', 
-         'url' : 'https://saigo2works.com/',
-         'attributes': 'fake 2 Attrib'
-        },
-        {'uid': 'SaiGo 3', 
-         'context': 'testSweet', 
-         'url' : 'https://saigo3works.com/',
-         'attributes': 'fake 3 Attrib'
-        } 
-    ]
+    #Context_ID: swt.context_id
+    #Swt_ID: swt.id
+    #What:swt.what
+    #Where:swt.where
+    #Who:swt.who
+    #SwtStoreURL = 'http://teststore.swtr.us/api/sweets/q?who=SaiGo'
+    sweet_array = requests.get('http://teststore.swtr.us/api/sweets/q?who=SaiGo').content
     return render_template('showSweets.html', 
                            title='SaiGo_Home', 
-                           user=user, 
                            sweet_array=sweet_array)
 #+END_SRC
 
@@ -614,31 +606,15 @@ it is enhancing the core or base template.
 {% extends "coreLayout.html" %}
 {% block body %}
   <ul class=entries>
+  <p> Here is the Raw Sweet Array: {{ sweet_array }} </p>
   <h2> here are your sweets: </h2>
-  {% for sweet in sweet_array %}
-  	  <table>
-	      <tr>
-          <td> User ID: </td>
-		  <td> {{ g.user }} </td>
-	  </tr>
-			
-	  <tr>
-		  <td> Context: </td>
-		 <td> {{ sweet.context }} </td>
-	  </tr>
-			
-	<tr>
-		<td> URL: </td>
-		<td> {{ sweet.url }} </td>
-	</tr>
-			
-	<tr>
-		<td> Attributes: </td>
-		<td> {{ sweet.attributes }} </td>
-	</tr>
-	<br />
-	<br />
-	</table>
+  {% for swt in sweet_array %}
+     <ul> ID: {{ swt.id }} </ul>
+     <ul> Who: {{ swt.who }} </ul>
+     <ul> Context ID: {{ swt.context_id }} </ul>
+     <ul> What: {{ swt.what }} </ul>
+     <ul> Where: {{ swt.where }} </ul>
+     <br>
   {% else %}
     <li><em>Unbelievable. No Sweets here so far!</em>
   {% endfor %}
